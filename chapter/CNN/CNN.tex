@@ -1,1 +1,166 @@
 \section{CNN}
+\subsection{卷积}
+\subsection{卷积层的前向传播}
+为简单起见，考虑单通道的情况
+\begin{equation}
+	\boldsymbol{X} * \boldsymbol{K} = \boldsymbol{Y}
+\end{equation}
+即
+\begin{equation}
+	\begin{pmatrix}
+	x_{11}&  x_{12}& x_{13} \\ 
+	x_{21}&  x_{22}&  x_{23}\\ 
+	x_{31}&  x_{32}& x_{33}
+	\end{pmatrix} * 
+	\begin{pmatrix}
+	k_{11}& k_{12} \\ 
+	k_{21}& k_{22}
+	\end{pmatrix} =
+	\begin{pmatrix}
+	y_{11}& y_{12} \\ 
+	y_{21}& y_{22}
+	\end{pmatrix} 
+\end{equation}
+这里
+\begin{equation}
+	\begin{aligned}
+	\begin{pmatrix}
+	y_{11}\\ 
+	y_{12}\\ 
+	y_{21}\\ 
+	y_{22}
+	\end{pmatrix} &= 
+	\begin{pmatrix}
+	x_{11}k_{11} +x_{12}k_{12} +x_{21}k_{21} +x_{22}k_{22} \\ 
+	x_{12}k_{11} +x_{13}k_{12} +x_{22}k_{21} +x_{23}k_{22}\\
+	x_{21}k_{11} +x_{22}k_{12} +x_{31}k_{21} +x_{32}k_{22}\\
+	x_{22}k_{11} +x_{23}k_{12} +x_{32}k_{21} +x_{33}k_{22}
+	\end{pmatrix}\\
+	&=\begin{pmatrix}
+	x_{11} &x_{12} &x_{21} &x_{22}  \\ 
+	x_{12} &x_{13} &x_{22} &x_{23} \\
+	x_{21} &x_{22} &x_{31} &x_{32} \\
+	x_{22} &x_{23} &x_{32} &x_{33} 
+	\end{pmatrix} \cdot 
+	\begin{pmatrix}
+	k_{11}\\ 
+	k_{12}\\ 
+	k_{21}\\ 
+	k_{22}
+	\end{pmatrix}
+	\end{aligned}
+\end{equation}
+所以，卷积运算最终转化为矩阵运算。需要对原始的$\boldsymbol{X},\boldsymbol{K},\boldsymbol{Y}$进行变形操作，相应的记作$\boldsymbol{XC},\boldsymbol{KC},\boldsymbol{YC}$。多通道的情况只需要在维度上将操作扩展即可。
+\subsection{卷积层的反向传播}
+分析$\delta$误差反向传播过程可以简单的记忆为：如果神经网络$l+1$层某个结点的$\delta$误差要传到$l$层，我们就去找到前向传播时$l+1$层的这个结点和第$l$层的哪些结点有关系，权重是多少，那么反向传播时，$\delta$误差就会乘上相同的权重传播回来。
+
+为了书写方便，记
+\begin{equation}
+	\begin{pmatrix}
+		\delta_{11}\\ 
+		\delta_{12}\\ 
+		\delta_{21}\\ 
+		\delta_{22}
+	\end{pmatrix}=\nabla \boldsymbol{YC} = 
+	\begin{pmatrix}
+		\nabla y_{11}\\ 
+		\nabla y_{12}\\ 
+		\nabla y_{21}\\ 
+		\nabla y_{22}
+	\end{pmatrix}
+\end{equation}
+在反向传播中，$\delta$是从后面一层（一般是激活函数层或池化层）传过来的，是一个已知量，在此基础上求$\nabla \boldsymbol{K}, \nabla \boldsymbol{X}$
+\begin{enumerate}
+	\item 求$\nabla \boldsymbol{K}$
+	\begin{equation}
+		\nabla \boldsymbol{KC} = \boldsymbol{XC}^T\cdot \nabla \boldsymbol{YC}
+	\end{equation}
+	$\nabla \boldsymbol{KC}$ 只要reshape一下就可以得到$\nabla \boldsymbol{K}$
+	\item 求$\nabla \boldsymbol{X}$
+	
+	根据反向传播公式，
+	\begin{equation}
+		\nabla \boldsymbol{XC} = \nabla \boldsymbol{YC} \cdot \boldsymbol{KC}^T
+	\end{equation}
+	但是，从$\nabla \boldsymbol{XC}$还原到$\nabla \boldsymbol{X}$不是一件容易的事，所以考虑新的计算方式。
+	
+	根据前向传播
+	\begin{equation}
+		\begin{pmatrix}
+		y_{11}\\ 
+		y_{12}\\ 
+		y_{21}\\ 
+		y_{22}
+		\end{pmatrix} = 
+		\begin{pmatrix}
+		x_{11}k_{11} +x_{12}k_{12} +x_{21}k_{21} +x_{22}k_{22} \\ 
+		x_{12}k_{11} +x_{13}k_{12} +x_{22}k_{21} +x_{23}k_{22}\\
+		x_{21}k_{11} +x_{22}k_{12} +x_{31}k_{21} +x_{32}k_{22}\\
+		x_{22}k_{11} +x_{23}k_{12} +x_{32}k_{21} +x_{33}k_{22}
+		\end{pmatrix}
+	\end{equation}
+	可以计算每个$x_{ij}$的导数
+	\begin{equation}
+		\begin{aligned}
+		\begin{pmatrix}
+		\nabla x_{11} \\ 
+		\nabla x_{12}\\ 
+		\nabla x_{13}\\ 
+		\nabla x_{21}\\ 
+		\nabla x_{22}\\ 
+		\nabla x_{23}\\ 
+		\nabla x_{31}\\ 
+		\nabla x_{32}\\ 
+		\nabla x_{33}
+		\end{pmatrix} &= \begin{pmatrix}
+			k_{22}0 + k_{21}0 + K_{12}0+k_{11}\delta_{11} \\
+			k_{22}0 + k_{21}0 + K_{12}\delta_{11}+k_{11}\delta_{12} \\
+			k_{22}0 + k_{21}0 + K_{12}\delta_{12}+k_{11}0 \\
+			k_{22}0 + k_{21}\delta_{11} + K_{12}0+k_{11}\delta_{21} \\
+			k_{22}\delta_{11} + k_{21}\delta_{12} + K_{12}\delta_{21}+k_{11}\delta_{22} \\
+			k_{22}\delta_{12} + k_{21}0 + K_{12}\delta_{22}+k_{11}0 \\
+			k_{22}0 + k_{21}0 + K_{12}\delta_{21}+k_{11}0 \\
+			k_{22}\delta_{21} + k_{21}\delta_{22} + K_{12}0+k_{11}0 \\
+			k_{22}\delta_{22} + k_{21}0 + K_{12}0+k_{11}0 
+		\end{pmatrix}\\
+		&= \begin{pmatrix}
+		0 & 0 & 0 & \delta_{11} \\ 
+		0 & 0 & \delta_{11} & \delta_{12} \\ 
+		0 & 0 & \delta_{12} & 0 \\ 
+		0 & \delta_{11} & 0 & \delta_{21} \\ 
+		\delta_{11} & \delta_{12} & \delta_{21} & \delta_{22} \\ 
+		\delta_{12} & 0 & \delta_{22} & 0 \\ 
+		0 & \delta_{21} & 0 & 0 \\ 
+		\delta_{21} & \delta_{22} & 0 & 0 \\ 
+		\delta_{22} & 0 & 0 & 0
+		\end{pmatrix} \cdot 
+		\begin{pmatrix}
+			k_{11}\\ 
+			k_{12}\\ 
+			k_{21}\\ 
+			k_{22}
+		\end{pmatrix}
+		\end{aligned}
+	\end{equation}
+	设上面三个矩阵分别为$\nabla \boldsymbol{X}^{'},\nabla \boldsymbol{Y}^{'},\nabla \boldsymbol{K}^{'}$，即$\nabla \boldsymbol{X}^{'}=\nabla \boldsymbol{Y}^{'}\cdot \nabla \boldsymbol{K}^{'}$。从而可见
+	\begin{equation}
+		\nabla \boldsymbol{X} = 
+		\begin{pmatrix}
+		\nabla x_{11}&\nabla  x_{12}&\nabla x_{13} \\ 
+		\nabla x_{21}&\nabla  x_{22}&\nabla  x_{23}\\ 
+		\nabla x_{31}&\nabla  x_{32}&\nabla x_{33}
+		\end{pmatrix} = \begin{pmatrix}
+		0 & 0 & 0 & 0 \\ 
+		0 & \delta_{11} & \delta_{12} & 0 \\ 
+		0 & \delta_{21} & \delta_{22} & 0 \\ 
+		0 & 0 & 0 & 0
+		\end{pmatrix} *
+		\begin{pmatrix}
+		k_{22} & k_{21} \\ 
+		k_{12} & k_{11}
+		\end{pmatrix} 
+	\end{equation}
+	这是一个卷积运算。不同的是对$\nabla \boldsymbol{Y}$进行卷积，从后向前卷积，有的文章称为逆向卷积。
+\end{enumerate}
+
+\subsection{池化层及池化层的反向传播}

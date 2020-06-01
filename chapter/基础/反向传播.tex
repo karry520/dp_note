@@ -1,1 +1,52 @@
 \section{反向传播}
+前向传递输入信号直至产生误差，反向传播误差信息更新权重矩阵。误差反向传播的目标是寻找一计算前馈神经网络的误差函数$E(\boldsymbol{w})$的梯度的一种高效的方法。
+
+许多实际应用中使用的误差函数，例如针对一组独立同分布的数据的最大似然方法定义的误差函数，由若干的求和式组成，每一项对应于训练集的一个数据点，即
+\begin{equation}
+E(\boldsymbol{w})=\sum_{n=1}^{N}E_n(\boldsymbol{w})
+\end{equation}
+这里，我们要考虑的是计算$\nabla E_n(\boldsymbol{w})$的问题。这可以使用顺序优化的方法计算，或者使用批处理方法在训练集上进行累加。
+
+首先考虑一个简单的线性模型，其中输出$y_k$是输入变量$x_i$的线性组合，即，
+\begin{equation}
+y_k=\sum_i w_{ki}x_i
+\end{equation}
+对于一个特定的输入模式n，误差函数的形式为
+\begin{equation}
+E_n=\frac{1}{2}\sum_k(y_{nk}-t_{nk})^2
+\end{equation}
+其中$y_{nk}=y_k(\boldsymbol{x}_n,\boldsymbol{w})$。这个误差函数关于一个权值$w_{ji}$的梯度为
+\begin{equation}
+\frac{\partial E_n}{\partial w_{ji}}=(y_{nj}-t_{nj})x_{ni}
+\end{equation}
+它可以表示为链接$w_{ji}$的输出端相关联的“误差信号”$y_{nj}-t_{nj}$和与链接的输入端相关联的变量$x_{nj}$的乘积。
+反向传播算法可以总结如下 
+\begin{enumerate}
+	\item 对于网络的一个输入向量$\boldsymbol{x}_n$，使用下列进行正向传播，找到所有隐含单元和输出单元的激活。
+	\begin{flalign}
+	a_j&=\sum_iw_{ji}z_i\\
+	z_j&=h(a_j)
+	\end{flalign}
+	其中$z_i$是一个单元的激活，或者是输入。它向单元j发送一个链接，$w_{ji}$是与这个链接关联的权值。
+	\item 计算所有输出单元的$\delta_k$
+	\begin{equation}
+	\delta_k=y_k-t_k
+	\end{equation}
+	\item 获得网络中所有隐含单元的$\delta_j$
+	\begin{equation}
+	\begin{aligned}
+	\delta_j\equiv \frac{\partial E_n}{\partial a_j}&=\sum_k \frac{\partial E_n}{\partial a_k}\frac{\partial a_k}{\partial a_j}\\
+	&=h^{'}(a_j)\sum_k w_{kj}\delta_k
+	\end{aligned}
+	\end{equation}
+	其中求和式的作用对象是所有向单元j发送链接的单元k。注意，单元k可以包含其他的隐含单元和输出单元。
+	\item 计算导数
+	\begin{equation}
+	\frac{\partial E_n}{\partial w_{ji}}=\delta_jz_i
+	\end{equation}
+\end{enumerate}
+对于批处理方法，总误差函数E的导数可以通过下面的方式得到：对于训练集里的每个模式，重复上面的步骤，然后对所有的模式求和，即
+\begin{equation}
+\frac{\partial E}{\partial w_{ji}}=\sum_{n}\frac{\partial E_n}{\partial w_{ji}}
+\end{equation}
+上面的推导中，我们隐式地假设网络中的每个隐含单元或输入单元相同的激活函数$h(\cdot)$。

@@ -1,0 +1,25 @@
+digraph G {
+	node [fontcolor=black rank=L shape=circle size="4,8" style=filled]
+	subgraph r1 {
+		rank=same
+		x [label="" fillcolor=white]
+		1 [label=a fillcolor=yellow]
+		3 [label=c fillcolor=blue]
+	}
+	subgraph r2 {
+		rank=same
+		y [label="" fillcolor=white]
+		2 [label=b fillcolor=red]
+		4 [label=d fillcolor=pink]
+		5 [label=e fillcolor=orange]
+	}
+	5 [label=e fillcolor=orange]
+	x -> 1
+	y -> 2
+	1 -> 3
+	1 -> 4
+	2 -> 3
+	2 -> 4
+	3 -> 5
+	4 -> 5
+}
