@@ -1,0 +1,8 @@
+digraph {
+	rankdir=TB
+	1 [label=a]
+	"<f1>2" [label=b]
+	3 [label=c]
+	"<f2>4" [label=d]
+	<f1> -> <f2>
+}

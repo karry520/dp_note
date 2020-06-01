@@ -4,7 +4,7 @@ g = gz.Digraph('G', filename='bp.gv')
 # dot.node('1','Test1')
 # dot.node('2','Test2')
 # dot.edges(['12'])
-g.attr('node', shape='circle', style='filled', fontcolor='black', rank='L', size='4,8')
+g.attr('node', shape='circle', style='filled', fontcolor='black', rankdir='BT', size='4,8')
 
 text = [['x', '', 'white'], ['1', 'a', 'yellow'], ['3', 'c', 'blue'],
         ['y', '', 'white'], ['2', 'b', 'red'], ['4', 'd', 'pink'], ['5', 'e', 'orange']]

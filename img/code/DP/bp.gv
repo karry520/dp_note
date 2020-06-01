@@ -1,5 +1,5 @@
 digraph G {
-	node [fontcolor=black rank=L shape=circle size="4,8" style=filled]
+	node [fontcolor=black rankdir=BT shape=circle size="4,8" style=filled]
 	subgraph r1 {
 		rank=same
 		x [label="" fillcolor=white]
