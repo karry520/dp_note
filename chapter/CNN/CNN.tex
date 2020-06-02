@@ -1,5 +1,80 @@
 \section{CNN}
 \subsection{卷积}
+信号处理中，卷积被定义为：一个函数经过翻转和移动后与另一个函数的乘积的积分.
+\begin{equation}
+	(f*g)(t)=\int_{-\infty}^{\infty} f(\tau)g(t-tau)\mathrm{d}\tau 
+\end{equation}
+在深度学习中的卷积本质上是信号处理中的互相关(cross-correlation)操作。执行卷积的目的是从输入中提取有用的特征。卷积神经网络通过卷积在训练期间使用自动学习权重的函数来提取特征，所有这些提取出来的特征之后会被组合在一起做出决策。
+
+\begin{enumerate}
+	\item 2D卷积，如图\ref{2d_conv}
+	\begin{figure}[H]
+		\centering
+		\label{2d_conv}
+		\includegraphics[width=0.3\linewidth]{./img/code/CNN/1.pdf}
+		\caption{2D卷积}
+	\end{figure}
+	\item 多通道卷积(空间卷积)，如图\ref{space_conv}
+	\begin{figure}[H]
+		\label{space_conv}
+		\subfigure{
+			\begin{minipage}[t]{\linewidth}
+				\centering
+				\includegraphics[width=0.5\linewidth]{./img/code/CNN/2-0}
+			\end{minipage}	
+		}
+		
+		\subfigure{
+			\begin{minipage}[t]{\linewidth}
+				\centering
+				\includegraphics[width=0.5\linewidth]{./img/code/CNN/2-1}
+			\end{minipage}	
+		}	
+		\caption{多通道卷积}
+	\end{figure}
+	\item 3D卷积，上面两种虽然实现了空间卷积，但是本质上还是2D卷积。而在3D卷积中，过滤器的深度要比输入层的深度要小，结果是，3D过滤器可以沿着3个方向移动。输出的数值同样也以3D空间的形式呈现，最终输出一个3D数据。如图\ref{3d_conv}.
+	\begin{figure}[H]
+		\centering
+		\label{3d_conv}
+		\includegraphics[width=0.3\linewidth]{./img/code/CNN/5}
+		\caption{3D卷积}
+	\end{figure}
+	\item $1\times 1$卷积，计算上等于各个通道的加权和，同时可以改变特征通道数。如图\ref{1_conv}
+	\begin{figure}[H]
+		\label{1_conv}
+		\centering
+		\includegraphics[width=0.3\linewidth]{./img/code/CNN/6}
+		\caption{$1\times 1$卷积}
+	\end{figure}
+	\item 空间可分离卷积(Depthwise Separable Convolutions)，我们可以将可分离卷积操作拆成多个步骤。减少计算量。如图\ref{space_sep_conv}
+	\begin{figure}[H]
+		\label{space_sep_conv}
+		\centering
+		\includegraphics[width=0.5\linewidth]{./img/code/CNN/8}
+		\caption{空间可分离卷积}
+	\end{figure}
+	\item 分组卷积(Group Convolutions)，过滤器被拆分为不同中的组，每一个组负责具有一定深度的传统2D卷积的工作。另外，分组卷积也许有提供比标准完整2D卷积更好的模型。原因和稀疏过滤器有关。如图\ref{g_conv}
+	\begin{figure}[H]
+		\label{g_conv}
+		\centering
+		\includegraphics[width=0.5\linewidth]{./img/code/CNN/9}
+		\caption{分组卷积}
+	\end{figure}
+	\item 扩张卷积(空洞卷积 Dilated Convolutions) ，引入另一个卷积层的参数被称为扩张率。这定义了内核中值之间的间距。扩张率为$2$的$3\times 3$的内核具有与$5\times 5$的内核相同的视野，而只使用9个参数。系统能以相同的计算成本，提供更大的感受野。如图\ref{d_conv}
+	\begin{figure}[H]
+		\label{d_conv}
+		\centering
+		\includegraphics[width=0.5\linewidth]{./img/code/CNN/10}
+		\caption{扩张卷积}
+	\end{figure}
+	\item 反卷积(转置卷积 Transposed Convolutions)，转置卷积并非信号处理中的卷积运算的逆运算。对于 很多网络架构的很多应用言，我们往往需要进行与普通卷积方向相反的转换，即我们希望执行上采样。此时可以使用转置卷积操作。如图\ref{t_conv}
+	\begin{figure}[H]
+		\label{t_conv}
+		\centering
+		\includegraphics[width=0.3\linewidth]{./img/code/CNN/11.png}
+		\caption{转置卷积}
+	\end{figure}
+\end{enumerate}
 \subsection{卷积层的前向传播}
 为简单起见，考虑单通道的情况
 \begin{equation}

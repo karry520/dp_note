@@ -1,1 +1,80 @@
 \section{优化算法}
+梯度下降是目前神经网络使用最为广泛的优化算法之一。可以用下述步骤描述梯度下降的流程：
+\begin{enumerate}
+	\item 计算目标函数关于参数的梯度
+	\begin{equation}
+		\boldsymbol{g}_t = \nabla_{\theta} J(\theta)
+	\end{equation}
+	\item 根据历史梯度计算一阶和二阶动量
+	\begin{equation}
+		\begin{aligned}
+			\boldsymbol{m}_t &= \phi(\boldsymbol{g}_1, \boldsymbol{g}_2, \dots, \boldsymbol{g}_t) \\
+			\boldsymbol{v}_t &= \psi(\boldsymbol{g}_1, \boldsymbol{g}_2, \dots, \boldsymbol{g}_t)
+		\end{aligned}
+	\end{equation}
+	\item 更新模型参数
+	\begin{equation}
+		\theta_{t+1} = \theta_{t} - \frac{1}{\sqrt{v_t + \epsilon}}\boldsymbol{m}_t
+	\end{equation}
+\end{enumerate}
+
+其中，$\epsilon$为平滑项，防止分母为零，通常取1e-8。
+\subsection{小批量随机梯度下降}
+小批量随机梯度下降在每次迭代中随机均匀采样多个样本来组成一个小批量，然后使用这个小批量来计算梯度。没有动量的概念，即$\boldsymbol{m}_t=\eta \boldsymbol{g}_t, \boldsymbol{v}_t=I^2,\epsilon = 0$
+\begin{equation}
+\begin{aligned}
+	\boldsymbol{g}_t \leftarrow \nabla J_{\mathcal{B}_t}(\boldsymbol{x}_{t-1})  &= \frac{1}{|\mathcal{B}|}\sum_{i \in \mathcal{B}_t}\nabla J_i(\boldsymbol{x}_{t-1})\\
+	\theta_{t+1} &= \theta_{t} - \eta \boldsymbol{g}_t
+\end{aligned}
+\end{equation}
+SGD的缺点在于收敛速度慢，可能在鞍点处震荡。并且，如何合理的选择学习率是SGD的一大难点。
+\subsection{动量法}
+SGD在遇到沟壑时容易陷入震荡。为此，可以为其引入动量Momentum，加速SGD在正确方向的下降并抑制震荡。
+\begin{equation}
+\begin{aligned}
+	\boldsymbol{m}_t&=\gamma \boldsymbol{m}_{t-1} + \eta \boldsymbol{g}_t\\
+	\theta_{t+1} &= \theta_{t} - \boldsymbol{m}_t
+\end{aligned}
+\end{equation}
+这意味着参数更新方向不仅由当前的梯度决定，也与此前累积的下降方向有关。这使得参数中那些梯度方向变化不大的维度可以更新，并减少梯度方向变较大的维度上的更新幅度。由此产生了加速收敛和减小震荡的效果。
+
+动量法使用了指数加权移动平均的思想。它将过去时间步的梯度做了加权平均，且权重按时间步指数衰减。动量法使得相邻时间步的自变量更新在方向上更加一致。
+\subsection{AdaGrad算法}
+深度学习模型中往往涉及大量的参数，不同参数的更新频率往往有所区别。对于更新不频繁的参数，我们希望单次步长更大，多学习一些知识；对于更新频率的参数，我们则希望步长较小，使得学习到的参数更稳定，不至于被单个样本影响太多。
+
+Adagrad算法引入了二阶动量：
+\begin{equation}
+	\begin{aligned}
+		\boldsymbol{v}_t&=\mathrm{diag}(\sum_{i=1}^{t}\boldsymbol{g}_{i,1}^2, \sum_{i=1}^{t}\boldsymbol{g}_{i,2}^2, \dots, \sum_{i=1}^{t}\boldsymbol{g}_{i,d}^2)\\
+		\theta_{t+1} &= \theta_{t} - \frac{\eta}{\sqrt{v_t + \epsilon}}\boldsymbol{g}_t
+	\end{aligned}
+\end{equation}
+AdaGrad算法在迭代过程中不断调整学习率，并让目标函数自变量中每个元素都分别拥有自己的学习率。使用AdaGrad算法时，自变量中每个元素的学习率在迭代过程中一直在降低(或不变)。这一方法在稀疏数据的场景下表现很好。
+\subsection{RMSProp算法}
+在Adagrad中，$v_t$是单增的，使得学习率逐渐递减至0，可能导致训练过程提前结束。为了改进这一缺点，可以考虑在计算二阶动量时不累积全部历史梯度，而只关注最近某一时间窗口内的下降梯度。根据此思想有了RMSprop。有
+\begin{equation}
+	\begin{aligned}
+		v_t &= \gamma v_{t-1} + (1-\gamma)\cdot \mathrm{diag}(g_t \odot g_t)\\
+		\theta_{t+1} &= \theta_{t} - \frac{\eta}{\sqrt{v_t + \epsilon}}\boldsymbol{g}_t
+	\end{aligned}
+\end{equation}
+其二阶动量采用指数移动平均公式计算，这样可避免二阶动量持续累积的问题。
+\subsection{Adam算法}
+Adam可以认为是RMSprop和Momentum的结合。和RMSprop对二阶动量使用指数移动平均类似，Adam中对一阶动量也是用指数移动平均计算。
+\begin{equation}
+	\begin{aligned}
+		\boldsymbol{m}_t&=\eta [\beta_1 \boldsymbol{m}_{t-1} + (1-\beta_1)  \boldsymbol{g}_t]\\
+		\boldsymbol{v}_t &= \beta_2 \boldsymbol{v}_{t-1} + (1-\beta_2)\cdot \mathrm{diag}(\boldsymbol{g}_t \odot \boldsymbol{g}_t) 
+	\end{aligned}
+\end{equation}
+其中，初值$\boldsymbol{m}_0=0,\boldsymbol{v}_0=0$。注意到，在迭代初始阶段，$\boldsymbol{m}_t,\boldsymbol{v}_t$有一个向初值的偏移(过多地偏向0)。因此，可以做偏置校正
+\begin{equation}
+\begin{aligned}
+	\hat{\boldsymbol{m}}_t&=\frac{\boldsymbol{m}_t}{1-\beta_1^t}\\
+	\hat{\boldsymbol{v}}_t &=  \frac{\boldsymbol{v}_t}{1-\beta_2^t}
+\end{aligned}
+\end{equation}
+再更新
+\begin{equation}
+	\theta_{t+1} = \theta_{t} - \frac{1}{\sqrt{\hat{\boldsymbol{v}}_t + \epsilon}}\hat{\boldsymbol{m}}_t
+\end{equation}
