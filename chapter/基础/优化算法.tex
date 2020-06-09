@@ -1,4 +1,4 @@
-\chapter{优化算法}
+\section{优化算法}
 梯度下降是目前神经网络使用最为广泛的优化算法之一。可以用下述步骤描述梯度下降的流程：
 \begin{enumerate}
 	\item 计算目标函数关于参数的梯度
@@ -19,7 +19,7 @@
 \end{enumerate}
 
 其中，$\epsilon$为平滑项，防止分母为零，通常取1e-8。
-\section{小批量随机梯度下降}
+\subsection{小批量随机梯度下降}
 小批量随机梯度下降在每次迭代中随机均匀采样多个样本来组成一个小批量，然后使用这个小批量来计算梯度。没有动量的概念，即$\boldsymbol{m}_t=\eta \boldsymbol{g}_t, \boldsymbol{v}_t=I^2,\epsilon = 0$
 \begin{equation}
 \begin{aligned}
@@ -28,7 +28,7 @@
 \end{aligned}
 \end{equation}
 SGD的缺点在于收敛速度慢，可能在鞍点处震荡。并且，如何合理的选择学习率是SGD的一大难点。
-\section{动量法}
+\subsection{动量法}
 SGD在遇到沟壑时容易陷入震荡。为此，可以为其引入动量Momentum，加速SGD在正确方向的下降并抑制震荡。
 \begin{equation}
 \begin{aligned}
@@ -39,7 +39,7 @@ SGD在遇到沟壑时容易陷入震荡。为此，可以为其引入动量Momen
 这意味着参数更新方向不仅由当前的梯度决定，也与此前累积的下降方向有关。这使得参数中那些梯度方向变化不大的维度可以更新，并减少梯度方向变较大的维度上的更新幅度。由此产生了加速收敛和减小震荡的效果。
 
 动量法使用了指数加权移动平均的思想。它将过去时间步的梯度做了加权平均，且权重按时间步指数衰减。动量法使得相邻时间步的自变量更新在方向上更加一致。
-\section{AdaGrad算法}
+\subsection{AdaGrad算法}
 深度学习模型中往往涉及大量的参数，不同参数的更新频率往往有所区别。对于更新不频繁的参数，我们希望单次步长更大，多学习一些知识；对于更新频率的参数，我们则希望步长较小，使得学习到的参数更稳定，不至于被单个样本影响太多。
 
 Adagrad算法引入了二阶动量：
@@ -59,7 +59,7 @@ AdaGrad算法在迭代过程中不断调整学习率，并让目标函数自变�
 	\end{aligned}
 \end{equation}
 其二阶动量采用指数移动平均公式计算，这样可避免二阶动量持续累积的问题。
-\section{Adam算法}
+\subsection{Adam算法}
 Adam可以认为是RMSprop和Momentum的结合。和RMSprop对二阶动量使用指数移动平均类似，Adam中对一阶动量也是用指数移动平均计算。
 \begin{equation}
 	\begin{aligned}
